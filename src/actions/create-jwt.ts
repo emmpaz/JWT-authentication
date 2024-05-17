@@ -1,7 +1,9 @@
+
 import Cookies from 'js-cookie';
 import { NextApiResponse } from 'next';
 import { serialize } from 'cookie';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 const jwt = require('jsonwebtoken');
 
 
@@ -22,26 +24,26 @@ export function generateAccessToken(user: TokenPayload) {
     const secret = process.env.NEXT_PUBLIC_JWT_SECRET_KEY;
 
     const options = {
-        expiresIn: '1h'
+        expiresIn: '10s'
     };
 
     return jwt.sign(payload, secret, options);
 }
 
 export function setAccessToken(token: string) {
+        
+    const response = NextResponse.json({
+        message: 'Log in successful'},
+        {status: 200}
+    );
 
-    const cookie = serialize(TOKEN_COOKIE_NAME, token, {
+    response.cookies.set({
+        name: TOKEN_COOKIE_NAME,
+        value: token,
+        maxAge: 10,
         path: '/',
-        maxAge: 30 * 24 * 60 * 60,
+        httpOnly: true
     })
 
-    return NextResponse.json(
-        {message: 'Login successful'},
-        {
-            status: 200,
-            headers: {
-                'Set-Cookie': cookie
-            }
-        }
-    )
+    return response;
 }

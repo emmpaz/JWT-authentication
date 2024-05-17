@@ -1,10 +1,11 @@
 'use server'
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
-import { TOKEN_COOKIE_NAME, TokenPayload } from "./jwt/create-jwt";
-import { query } from "./db/db-connection";
+import { TOKEN_COOKIE_NAME, TokenPayload } from "./create-jwt";
+import { query } from "./db-connection";
 import { JwtPayload } from "jsonwebtoken";
 import { serialize } from "cookie";
+import { redirect } from "next/navigation";
 
 export async function getUser(){
     const cookieStore = cookies();
@@ -24,15 +25,12 @@ export async function getUser(){
     
     qResult = await query('SELECT * FROM users WHERE email = $1', [payload.email]);
 
-    console.log(qResult);
+    return qResult.rows[0].firstname;
 
 
 }
 
 export async function signOut(){
-
-    await fetch('api/auth/logout', {
-        method: 'GET',
-    })
-
+    cookies().delete(TOKEN_COOKIE_NAME);
+    redirect('/login');
 }

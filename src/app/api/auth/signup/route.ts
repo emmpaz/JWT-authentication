@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
-import { query } from '../../../../actions/db/db-connection';
+import { query } from '../../../../actions/db-connection';
 import bcrypt from 'bcrypt';
 
 const saltRounds = Number(process.env.NEXT_PUBLIC_SALT_ROUNDS)
