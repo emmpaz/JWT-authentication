@@ -1,7 +1,7 @@
 'use server'
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
-import { TOKEN_COOKIE_NAME, TokenPayload } from "./create-jwt";
+import { REFRESH_COOKIE_NAME, TOKEN_COOKIE_NAME, TokenPayload } from "./create-jwt";
 import { query } from "./db-connection";
 import { JwtPayload } from "jsonwebtoken";
 import { serialize } from "cookie";
@@ -14,23 +14,26 @@ export async function getUser(){
 
     if(!token) return null
 
-    const decoded = await jwtVerify(
-        token,
-        new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string)
-    );
-
-    const payload = decoded.payload as TokenPayload & JwtPayload;
-
-    let qResult;
+    try{
+        const decoded = await jwtVerify(
+            token,
+            new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string)
+        );
     
-    qResult = await query('SELECT * FROM users WHERE email = $1', [payload.email]);
-
-    return qResult.rows[0].firstname;
-
-
+        const payload = decoded.payload as TokenPayload & JwtPayload;
+    
+        let qResult;
+        
+        qResult = await query('SELECT * FROM users WHERE email = $1', [payload.email]);
+    
+        return qResult.rows[0].firstname;
+    }catch(error){
+        return ""
+    }
 }
 
 export async function signOut(){
     cookies().delete(TOKEN_COOKIE_NAME);
+    cookies().delete(REFRESH_COOKIE_NAME);
     redirect('/login');
 }

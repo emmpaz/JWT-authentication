@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from 'bcrypt';
 import { query } from "@/actions/db-connection";
 import { QueryResult } from "pg";
-import { generateAccessToken, setAccessToken } from "@/actions/create-jwt";
+import { generateAccessAndRefreshToken, setTokens } from "@/actions/create-jwt";
 
 export async function POST(req: NextRequest, res: NextApiResponse){
     const {email, password } = await req.json();
@@ -29,12 +29,13 @@ export async function POST(req: NextRequest, res: NextApiResponse){
         })
         if(!answer) return NextResponse.json({ text: 'Incorrect password' }, { status: 200 }); 
         
-        const token = generateAccessToken({
+        const {accessToken, refreshToken} = generateAccessAndRefreshToken({
             id: data.id,
-            email: data.email
+            email: data.email,
+            name: data.firstName
         });
         
-        return setAccessToken(token); 
+        return setTokens(accessToken, refreshToken); 
 
     } catch (err) {
         console.log(err);
