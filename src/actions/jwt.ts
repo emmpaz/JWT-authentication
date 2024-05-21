@@ -8,6 +8,8 @@ import jwt from 'jsonwebtoken';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { QueryResult } from 'pg';
 import { query } from './db-connection';
+import{ v4 as uuidv4} from 'uuid';
+import { add_ID_to_DB } from './redis';
 
 export const TOKEN_COOKIE_NAME = '__example_jt__';
 export const REFRESH_COOKIE_NAME = '__example_refresh__';
@@ -15,7 +17,8 @@ export const REFRESH_COOKIE_NAME = '__example_refresh__';
 export type TokenPayload = {
     id: string,
     email: string,
-    name: string
+    name: string,
+    refreshTokenId? : string
 }
 /**
  * NOTES
@@ -69,6 +72,9 @@ export function decrypt(encryptedToken: string) {
 }
 
 export function generateAccessAndRefreshToken(user: TokenPayload) {
+
+    const refreshTokenId = uuidv4();
+
     const accessPayload = {
         id: user.id,
         email: user.email,
@@ -78,21 +84,24 @@ export function generateAccessAndRefreshToken(user: TokenPayload) {
     const refreshPayload = {
         id: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
+        refreshTokenId
     }
 
     const accessSecret = process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string;
 
     const refreshSecret = process.env.NEXT_PUBLIC_REFRESH_SECRET_KEY as string;
 
+    const accessExpirationTime = process.env.NEXT_PUBLIC_ACCESS_EXPIRATION as string;
 
+    const refreshExpirationTime = process.env.NEXT_PUBLIC_REFRESH_EXPIRATION as string;
 
     const accessOptions = {
-        expiresIn: '10s'
+        expiresIn: accessExpirationTime
     };
 
     const refreshOptions = {
-        expiresIn: '7d'
+        expiresIn: refreshExpirationTime
     };
 
     const accessToken = jwt.sign(accessPayload, accessSecret, accessOptions);
@@ -116,14 +125,41 @@ export async function refreshAccessToken(user: TokenPayload) {
     }
 
     const accessSecret = process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string;
+    const accessExpirationTime = process.env.NEXT_PUBLIC_ACCESS_EXPIRATION as string;
+
 
     const accessOptions = {
-        expiresIn: '10s'
+        expiresIn: accessExpirationTime
     };
 
     const accessToken = jwt.sign(payload, accessSecret, accessOptions);
 
     return accessToken;
+}
+
+export async function rotateRefreshToken(user: TokenPayload){
+    
+    const refreshTokenId = uuidv4();
+
+    
+    const payload = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        refreshTokenId
+    }
+
+    const refreshSecret = process.env.NEXT_PUBLIC_REFRESH_SECRET_KEY as string;
+    
+    const refreshOptions = {
+        expiresIn: '10s'
+    };
+
+    const refreshToken = jwt.sign(payload, refreshSecret, refreshOptions)
+
+    const encrypted_refreshToken = encrypt(refreshToken);
+
+    return encrypted_refreshToken;
 }
 
 export function setTokens(accessToken: string, refreshToken: string) {

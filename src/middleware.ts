@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { REFRESH_COOKIE_NAME, TOKEN_COOKIE_NAME, TokenPayload } from "./actions/create-jwt";
+import { REFRESH_COOKIE_NAME, TOKEN_COOKIE_NAME, TokenPayload } from "./actions/jwt";
 import { jwtVerify } from "jose";
 import { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { error } from "console";
+import { redirect } from "next/dist/server/api-utils";
 
 
 /**
@@ -22,30 +23,38 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
   };
+
   try {
-    const decoded = await jwtVerify(
+    await jwtVerify(
       token,
       new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string)
     );
-    if (decoded.payload.exp as number < Date.now() / 1000) {
-      console.log('done');
-    }
   } catch (error) {
     const refresh = await fetch('https://localhost:3000/api/auth/refresh', {
       method: 'POST',
       body: JSON.stringify({
         refresh: cookies().get(REFRESH_COOKIE_NAME)?.value,
       })
-    })
+    });
+    let response : NextResponse;
     if (refresh.ok) {
-      const response = NextResponse.next();
+      response = NextResponse.next();
 
-      const {token} = await refresh.json();
+      const { access_token, refresh_token } = await refresh.json();
 
 
       response.cookies.set({
         name: TOKEN_COOKIE_NAME,
-        value: token,
+        value: access_token,
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict'
+      })
+
+      response.cookies.set({
+        name: REFRESH_COOKIE_NAME,
+        value: refresh_token,
         path: '/',
         httpOnly: true,
         secure: true,
@@ -54,6 +63,12 @@ export async function middleware(request: NextRequest) {
 
       return response;
     }
+
+    response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.delete(TOKEN_COOKIE_NAME);
+    response.cookies.delete(REFRESH_COOKIE_NAME);
+    
+    return response;
   }
   return NextResponse.next();
 }
