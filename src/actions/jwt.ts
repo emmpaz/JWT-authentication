@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { QueryResult } from 'pg';
-import { query } from './db-connection';
+import { query } from './db';
 import{ v4 as uuidv4} from 'uuid';
 import { add_ID_to_DB } from './redis';
 

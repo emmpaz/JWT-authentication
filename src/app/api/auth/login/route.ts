@@ -1,7 +1,7 @@
 import { NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from 'bcrypt';
-import { query } from "@/actions/db-connection";
+import { query } from "@/actions/db";
 import { QueryResult } from "pg";
 import { generateAccessAndRefreshToken, setTokens } from "@/actions/jwt";
 
@@ -27,6 +27,10 @@ export async function POST(req: NextRequest, res: NextApiResponse){
 
         if(data.lockout_until && data.lockout_until > new Date()){
             return NextResponse.json({message: 'Account is temporarily locked.'}, {status: 403})
+        }
+
+        else if(data.lockout_until && data.lockout_until < new Date()){
+            await query('UPDATE users set failed_attempts = $1, lockout_until = $2 WHERE id = $3', [0, null, data.id]);
         }
 
         const answer = await new Promise<boolean>((resolve: any, reject: any) => {

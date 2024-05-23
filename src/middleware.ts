@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { REFRESH_COOKIE_NAME, TOKEN_COOKIE_NAME, TokenPayload } from "./actions/jwt";
+import { REFRESH_COOKIE_NAME, TOKEN_COOKIE_NAME } from "./actions/jwt";
 import { jwtVerify } from "jose";
-import { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { error } from "console";
-import { redirect } from "next/dist/server/api-utils";
 
 
 /**
@@ -19,6 +16,7 @@ import { redirect } from "next/dist/server/api-utils";
 
 export async function middleware(request: NextRequest) {
   const token = cookies().get(TOKEN_COOKIE_NAME)?.value;
+
 
   if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
@@ -70,7 +68,8 @@ export async function middleware(request: NextRequest) {
     
     return response;
   }
-  return NextResponse.next();
+  const response = NextResponse.next();
+  return response;
 }
 
 

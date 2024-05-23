@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { REFRESH_COOKIE_NAME, TOKEN_COOKIE_NAME, TokenPayload, decrypt } from "./jwt";
-import { query } from "./db-connection";
+import { query } from "./db";
 import { JwtPayload } from "jsonwebtoken";
 import { serialize } from "cookie";
 import { redirect } from "next/navigation";

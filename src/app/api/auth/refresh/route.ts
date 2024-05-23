@@ -1,5 +1,5 @@
 import { REFRESH_COOKIE_NAME, TOKEN_COOKIE_NAME, TokenPayload, decrypt, refreshAccessToken, rotateRefreshToken } from "@/actions/jwt";
-import { query } from "@/actions/db-connection";
+import { query } from "@/actions/db";
 import { JWTVerifyResult, jwtVerify } from "jose";
 import { JwtPayload } from "jsonwebtoken";
 import { NextApiResponse } from "next";

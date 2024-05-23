@@ -1,6 +1,4 @@
 'use client'
-
-import { getUser } from "@/actions/user";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
@@ -41,8 +39,8 @@ export default function Page() {
                 </div>
                 <div className="w-full grid place-items-center grid-cols-2">
                     <button type="submit" className="btn btn-primary">Submit</button>
-                    <Link href='/signup'>
-                        <button className="btn btn-link">sign up</button>
+                    <Link href='/signup' className="btn btn-link">
+                        sign up
                     </Link>
                 </div>
             </form>
