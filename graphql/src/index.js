@@ -1,13 +1,11 @@
 import express from 'express';
-import {createHandler} from 'graphql-http/lib/use/express';
+import { createHandler } from 'graphql-http/lib/use/express';
 import { buildSchema } from 'graphql';
-import {ruruHTML} from 'ruru/server';
+import { ruruHTML } from 'ruru/server';
 import pg from 'pg';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-
-const key = process.env.NEXT_PUBLIC_JWT_SECRET_KEY;
 
 const pool = new pg.Pool({
     user: 'postgres',
@@ -42,13 +40,13 @@ export const root = {
         const result = await pool.query('SELECT * FROM user_table');
         return result.rows;
     },
-    user: async ({id}) => {
+    user: async ({ id }) => {
         const result = await pool.query('SELECT * FROM user_table WHERE id=$1', [id]);
         return result.rows[0];
     },
-    createUser: async ({name, email}) => {
+    createUser: async ({ name, email }) => {
         const result = await pool
-        .query(`INSERT INTO user_table 
+            .query(`INSERT INTO user_table 
                 (name, email) VALUES ($1, $2)
                 RETURNING *`, [name, email]);
         return result.rows[0];
@@ -56,19 +54,42 @@ export const root = {
 }
 
 const middleware = (req, res, next) => {
-    const token = req.headers.cookie;
-    console.log(token);
-    if(typeof req.headers.cookie == 'undefined'){
+    const key = process.env.NEXT_PUBLIC_JWT_SECRET_KEY;
+
+    let true_token;
+    console.log(req.headers);
+    if(process.env.TESTING){
+        const both_tokens = req.headers.cookie;
+        const access_part = both_tokens?.split(';')[0];
+        true_token = access_part?.replace('__example_jt__=', '');
+    }else{
+        true_token = req.headers.cookie
+    }
+
+    if (!true_token) {
         return res.status(401).json({
             "errors": [
                 {
-                "message": 'No access token',
-                "extensions" : {
-                    "code" : "AUTHORIZATION_ERROR"
-                }
+                    "message": 'No access token',
+                    "extensions": {
+                        "code": "AUTHORIZATION_ERROR"
+                    }
                 }
             ]
         })
+    }
+    try {
+        jwt.verify(true_token, key);
+    } catch (err) {
+        return res.status(401).json({
+            errors: [{
+                message: 'Token Expired or invalid',
+                extensions: {
+                    code: 'TOKEN_EXPIRED or INVALID'
+                },
+                tes: err
+            }]
+        });
     }
     next();
 }
@@ -87,7 +108,7 @@ app.all('/graphql', createHandler({
 
 app.get('/', (_req, res) => {
     res.type('html');
-    res.end(ruruHTML({endpoint: '/graphql'}))
+    res.end(ruruHTML({ endpoint: '/graphql' }))
 })
 
 app.listen(4000, () => console.log('server running'));

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inconsolata } from "next/font/google";
 import "./globals.css";
-import ApolloWrapper from "./context/ApolloWrapper";
+import {ApolloWrapper} from "./context/ApolloWrapper";
 
 const incon = Inconsolata({ subsets: ["latin"] });
 
@@ -18,9 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="synthwave">
       <body className={incon.className}>
-        <ApolloWrapper>
           {children}
-        </ApolloWrapper>
       </body>
     </html>
   );
