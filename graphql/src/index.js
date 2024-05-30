@@ -24,7 +24,7 @@ export const schema = buildSchema(`
 
     type Query{
         users: [User!]!
-        user(id: ID!): User
+        user(email: String!): User
     }
 
     type Mutation{
@@ -40,8 +40,8 @@ export const root = {
         const result = await pool.query('SELECT * FROM user_table');
         return result.rows;
     },
-    user: async ({ id }) => {
-        const result = await pool.query('SELECT * FROM user_table WHERE id=$1', [id]);
+    user: async ({ email }) => {
+        const result = await pool.query('SELECT * FROM user_table WHERE email=$1', [email]);
         return result.rows[0];
     },
     createUser: async ({ name, email }) => {
@@ -57,7 +57,7 @@ const middleware = (req, res, next) => {
     const key = process.env.NEXT_PUBLIC_JWT_SECRET_KEY;
 
     let true_token;
-    console.log(req.headers);
+
     if(process.env.TESTING){
         const both_tokens = req.headers.cookie;
         const access_part = both_tokens?.split(';')[0];

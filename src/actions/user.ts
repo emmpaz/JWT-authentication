@@ -7,8 +7,10 @@ import { JwtPayload } from "jsonwebtoken";
 import { serialize } from "cookie";
 import { redirect } from "next/navigation";
 import { add_ID_to_DB, isBlacklisted } from "./redis";
+import { get_user } from "./graphql/test";
+import { User } from "@/app/context/AuthContext";
 
-export async function getUser(){
+export async function find_current_user(){
     const cookieStore = cookies();
 
     const token = cookieStore.get(TOKEN_COOKIE_NAME)?.value;
@@ -23,13 +25,12 @@ export async function getUser(){
     
         const payload = decoded.payload as TokenPayload & JwtPayload;
     
-        let qResult;
+        let qResult : User | null;
         
-        qResult = await query('SELECT * FROM users WHERE email = $1', [payload.email]);
-    
-        return qResult.rows[0].firstname;
+        qResult = await get_user(payload.email);
+        return qResult;
     }catch(error){
-        return ""
+        return null;
     }
 }
 

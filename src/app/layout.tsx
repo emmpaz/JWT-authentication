@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inconsolata } from "next/font/google";
 import "./globals.css";
-import {ApolloWrapper} from "./context/ApolloWrapper";
+import {AuthProvider} from "./context/AuthContext";
 
 const incon = Inconsolata({ subsets: ["latin"] });
 
@@ -18,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="synthwave">
       <body className={incon.className}>
+        <AuthProvider>
           {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -7,15 +7,15 @@ import { TOKEN_COOKIE_NAME } from "../jwt";
 
 export const createClient = async () => {
     const middleware = new ApolloLink((operation, forward) => {
-        const headers = {
-            cookie: cookies().get(TOKEN_COOKIE_NAME)?.value ?? "",
-            language: 'en',
-            clientType: 'BACKEND'
-        }
 
-        operation.setContext({
-            headers,
-        })
+        operation.setContext(({headers = {}}) => ({
+            headers: {
+                ...headers,
+                cookie: cookies().get(TOKEN_COOKIE_NAME)?.value ?? "",
+                language: 'en',
+                clientType: 'BACKEND'
+            },
+        }));
 
         return forward(operation);
     })
