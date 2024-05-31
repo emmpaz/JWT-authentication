@@ -20,35 +20,61 @@ export const schema = buildSchema(`
         id: ID!
         name: String!
         email: String!
+        age: Int
+        posts: [Post!]!
+    }
+
+    type Post{
+        id: ID!
+        title: String!
+        content: String!
+        author: User!
     }
 
     type Query{
-        users: [User!]!
-        user(email: String!): User
+        users(limit: Int, offset: Int): [User!]!
+        user(id: ID!): User
+        userByEmail(email: String!): User
+        posts(limit: Int, offset: Int): [Post!]!
+        post(id: ID!): Post
     }
 
     type Mutation{
         createUser(name: String!, email: String!): User!
         updateUser(id: ID!, name: String, email: String): User!
         deleteUser(id: ID!): Boolean!
+        createPost(title: String!, content: String!, authorId: ID!): Post!
+        updatePost(id: ID!, title: String, content: String): Post!
+        deletePost(id: ID!): Boolean!
     }
 `);
 
 export const root = {
-    hello: () => "hello! world",
-    users: async () => {
-        const result = await pool.query('SELECT * FROM user_table');
+    users: async ({limit = 10, offset = 0}) => {
+        const result = await pool.query('SELECT * FROM user_table LIMIT $1 OFFSET $2', [limit, offset]);
         return result.rows;
     },
-    user: async ({ email }) => {
+    user: async ({ id }) => {
+        const result = await pool.query('SELECT * FROM user_table WHERE id=$1', [id]);
+        return result.rows[0];
+    },
+    userByEmail: async ({email}) => {
         const result = await pool.query('SELECT * FROM user_table WHERE email=$1', [email]);
         return result.rows[0];
     },
-    createUser: async ({ name, email }) => {
+    posts: async ({limit = 10, offset = 0}) => {
+        const result = await pool.query('SELECT * FROM post LIMIT $1 OFFSET $2', [limit, offset]);
+        return result.rows;
+    },
+    post: async ({ id }) => {
+        const result = await pool.query('SELECT * FROM post WHERE id=$1', [id]);
+        return result.rows[0];
+    },
+    createUser: async ({ name, email, age}) => {
         const result = await pool
             .query(`INSERT INTO user_table 
-                (name, email) VALUES ($1, $2)
-                RETURNING *`, [name, email]);
+                (name, email, age) VALUES ($1, $2, $3)
+                RETURNING *`, [name, email, age]);
         return result.rows[0];
     }
 }
