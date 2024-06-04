@@ -17,7 +17,6 @@ import { cookies } from "next/headers";
 export async function middleware(request: NextRequest) {
   const token = cookies().get(TOKEN_COOKIE_NAME)?.value;
 
-
   if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
   };

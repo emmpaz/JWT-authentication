@@ -18,7 +18,8 @@ export type TokenPayload = {
     id: string,
     email: string,
     name: string,
-    refreshTokenId? : string
+    refreshTokenId? : string,
+    last_signed_in? : null | string,
 }
 /**
  * NOTES
@@ -78,7 +79,8 @@ export function generateAccessAndRefreshToken(user: TokenPayload) {
     const accessPayload = {
         id: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
+        last_signed_in: user.last_signed_in,
     }
 
     const refreshPayload = {
@@ -121,7 +123,8 @@ export async function refreshAccessToken(user: TokenPayload) {
     const payload = {
         id: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
+        last_signed_in: user.last_signed_in
     }
 
     const accessSecret = process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string;

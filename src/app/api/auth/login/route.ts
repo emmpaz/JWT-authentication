@@ -6,12 +6,20 @@ import { QueryResult } from "pg";
 import { generateAccessAndRefreshToken, setTokens } from "@/actions/jwt";
 
 
+enum AUTH_COLUMNS {
+    id = 'id',
+    name = 'name',
+    email = 'email',
+    pwd = 'encrypted_password',
+    sign_in = 'last_sign_in_at',
+}
+
 export async function POST(req: NextRequest, res: NextApiResponse){
     const {email, password } = await req.json();
     try {
         let qResult : QueryResult;
         try{
-            qResult = await query('SELECT * FROM users WHERE email = $1', [email]);
+            qResult = await query(`SELECT * FROM users WHERE ${AUTH_COLUMNS.email} = $1`, [email]);
         }catch(err){
             return NextResponse.json({ message: 'Email or password incorrect' }, { status: 500 });
         }
@@ -20,6 +28,7 @@ export async function POST(req: NextRequest, res: NextApiResponse){
             name: string,
             email: string,
             encrypted_password: string,
+            last_sign_in_at: string
             // failed_attempts: number,
             // lockout_until: Date
         };
@@ -58,13 +67,15 @@ export async function POST(req: NextRequest, res: NextApiResponse){
             // }
             return NextResponse.json({ message: 'Incorrect password' }, { status: 200 }); 
         }
-        
+
+        const update = await query(`UPDATE users set ${AUTH_COLUMNS.sign_in} = $1 WHERE id = $2`, [new Date().toISOString(),data.id]);
+
         const {accessToken, refreshToken} = generateAccessAndRefreshToken({
             id: data.id,
             email: data.email,
-            name: data.name
+            name: data.name,
+            last_signed_in: data.last_sign_in_at
         });
-        
         return setTokens(accessToken, refreshToken); 
 
     } catch (err) {

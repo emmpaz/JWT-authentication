@@ -13,25 +13,24 @@ export async function get_users() {
     const {data, error} = await client.query({
         query: GET_USERS,
     })
-    if(error) console.log(error)
-    return data.users;
+    if(error) console.log('error', error.message);
+    return data.users ?? [];
 }
 
-export async function get_user(email: string){
-
+export async function get_user(){
     const client = await createClient();
     const {data, error} = await client.query({
         query: gql`
-            query get_user($email : String!){
-                user(email: $email){
+            query get_user{
+                user{
                     id
                     name
                     email
                 }
             }
         `,
-        variables: {email}
     });
+
     if(error){ 
         console.log(error);
         return null;

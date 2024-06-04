@@ -14,7 +14,8 @@ export type User = {
 interface contextType{
     user: User | null,
     handleUser: (user : User | null) => void;
-    loading: boolean
+    loading: boolean,
+    handleAuthChange: () => void
 }
 
 export const AuthContext = createContext<contextType | null>(null);
@@ -24,6 +25,7 @@ export function AuthProvider ({
 } : {children: React.ReactNode}){
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [authChanged, setAuthChanged] = useState<boolean>(false);
 
     const handleUser = (
         user : User | null
@@ -31,20 +33,25 @@ export function AuthProvider ({
         setUser(user);
     }
 
+    const fetchUser = async () => {
+        const res = await find_current_user();
+        console.log(res);
+        setUser(res);
+        setLoading(false);
+    }
+
+    const handleAuthChange = () => {
+        setAuthChanged(prev => !prev);
+    }
+
 
     useEffect(() => {
-        const fetchUser = async () => {
-            const res = await find_current_user();
-            console.log(res);
-            setUser(res);
-            setLoading(false);
-        }
         fetchUser();
-    }, [])
+    }, [authChanged])
 
 
     return(
-        <AuthContext.Provider value={{user, handleUser, loading}}>
+        <AuthContext.Provider value={{user, handleUser, loading, handleAuthChange}}>
             {children}
         </AuthContext.Provider>
     )

@@ -14,7 +14,7 @@ export default function Home() {
   const [list, setList] = useState([]);
   
   useEffect(() => {
-    get_users().then((res) => setList(res));
+    //get_users().then((res) => setList(res));
   }, []);
 
   if(loading) return <div className="w-full h-screen flex justify-center items-center">Loading...</div>
@@ -23,7 +23,7 @@ export default function Home() {
       <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className="grid grid-rows-2 place-items-center">
           <p className="">hello : {user?.name}</p>
-          {list && list.map((user : {
+          {/* {list && list.map((user : {
             id: number,
             name: string,
             email: string
@@ -31,7 +31,7 @@ export default function Home() {
             <li key={user.id}>{user.name}</li>
           ))
  
-          }
+          } */}
           <div className="w-full grid place-items-center grid-cols-2">
             <button onClick={() => signOut()} className="btn btn-primary">Sign out</button>
           </div>

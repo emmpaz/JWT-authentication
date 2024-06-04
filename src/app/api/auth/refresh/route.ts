@@ -45,18 +45,27 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
 
         const qResult = await query('SELECT * FROM users WHERE id = $1', [payload.id]);
 
-        const data = qResult.rows[0];
+        const data = qResult.rows[0] as {
+            id: string,
+            name: string,
+            email: string,
+            encrypted_password: string,
+            last_sign_in_at: string
+            // failed_attempts: number,
+            // lockout_until: Date
+        };;
 
         const access_token = await refreshAccessToken({
             id: data.id,
             email: data.email,
-            name: data.firstName
+            name: data.name,
+            last_signed_in: data.last_sign_in_at
         });
 
         const refresh_token = await rotateRefreshToken({
             id: data.id,
             email: data.email,
-            name: data.firstName
+            name: data.name
         })
 
         return NextResponse.json({

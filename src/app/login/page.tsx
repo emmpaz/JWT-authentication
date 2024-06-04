@@ -1,12 +1,14 @@
 'use client'
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 
 export default function Page() {
 
     const router = useRouter();
+    const {handleAuthChange} = useContext(AuthContext)!;
 
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
@@ -21,7 +23,11 @@ export default function Page() {
                 password: target.password.value
             })
         })
-        if(res.ok) router.push('/');
+        console.log(res);
+        if(res.ok) {
+            handleAuthChange();
+            router.push('/');
+        }
     }
         
 

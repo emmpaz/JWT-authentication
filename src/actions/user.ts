@@ -15,19 +15,13 @@ export async function find_current_user(){
 
     const token = cookieStore.get(TOKEN_COOKIE_NAME)?.value;
 
-    if(!token) return null
+    if(!token) return null;
 
     try{
-        const decoded = await jwtVerify(
-            token,
-            new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string)
-        );
-    
-        const payload = decoded.payload as TokenPayload & JwtPayload;
-    
-        let qResult : User | null;
         
-        qResult = await get_user(payload.email);
+        let qResult : User | null;
+
+        qResult = await get_user();
         return qResult;
     }catch(error){
         return null;
