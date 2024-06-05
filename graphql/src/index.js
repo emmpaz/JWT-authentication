@@ -22,29 +22,8 @@ export const typeDefs = `
         email: String!
     }
 
-    type Post{
-        id: ID!
-        title: String!
-        content: String!
-        author: User!
-    }
-
     type Query{
-        users(limit: Int, offset: Int): [User!]!
         user: User
-        userByEmail(email: String!): User
-        posts(limit: Int, offset: Int): [Post!]!
-        post(id: ID!): Post
-        hello: String!
-    }
-
-    type Mutation{
-        createUser(name: String!, email: String!): User!
-        updateUser(id: ID!, name: String, email: String): User!
-        deleteUser(id: ID!): Boolean!
-        createPost(title: String!, content: String!, authorId: ID!): Post!
-        updatePost(id: ID!, title: String, content: String): Post!
-        deletePost(id: ID!): Boolean!
     }
 `;
 
@@ -52,7 +31,6 @@ const resolvers = {
     Query: {
         user: async (_, __, context) => {
             const {user} = context;
-            console.log(user);
             let result = await pool.query('SELECT * FROM resource_users WHERE id=$1', [user.id]);
             let resultedUser;
             

@@ -23,7 +23,7 @@ export default function Page() {
                 password: target.password.value
             })
         })
-        console.log(res);
+
         if(res.ok) {
             handleAuthChange();
             router.push('/');
@@ -34,7 +34,7 @@ export default function Page() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
         <div className=" w-1/2 max-w-sm min-w-72">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} method="POST" encType="application/x-www-form-urlencoded">
                 <div>
                     <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
                     <input type="text" id="email" name="email" className="input w-full input-secondary" placeholder="john@example.com" required />
