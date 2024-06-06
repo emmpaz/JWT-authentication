@@ -35,7 +35,6 @@ export function AuthProvider ({
 
     const fetchUser = async () => {
         const res = await find_current_user();
-        console.log(res);
         setUser(res);
         setLoading(false);
     }

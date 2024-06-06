@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { query } from "@/actions/db";
 import { QueryResult } from "pg";
 import { generateAccessAndRefreshToken, setTokens } from "@/actions/jwt";
+import { create_session, refresh_token_in_session } from "@/actions/sessions";
 
 
 enum AUTH_COLUMNS {
@@ -67,15 +68,23 @@ export async function POST(req: NextRequest, res: NextApiResponse){
             // }
             return NextResponse.json({ message: 'Incorrect password' }, { status: 200 }); 
         }
-
-        const update = await query(`UPDATE users set ${AUTH_COLUMNS.sign_in} = $1 WHERE id = $2`, [new Date().toISOString(),data.id]);
-
+        
+        const session_id = await create_session({
+            user_id: data.id, 
+            ip_address: req.headers.get('x-forwarded-for') ?? "no ip address", 
+            user_agent: req.headers.get('user-agent') ?? "no user agent"
+        })
+        
         const {accessToken, refreshToken} = generateAccessAndRefreshToken({
             id: data.id,
             email: data.email,
             name: data.name,
-            last_signed_in: data.last_sign_in_at
+            last_signed_in: data.last_sign_in_at,
+            session_id
         });
+
+        await refresh_token_in_session(session_id, refreshToken);
+
         return setTokens(accessToken, refreshToken); 
 
     } catch (err) {

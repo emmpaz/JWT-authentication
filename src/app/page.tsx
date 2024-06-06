@@ -1,6 +1,6 @@
 'use client'
 
-import { get_users } from "@/actions/graphql/test";
+import { get_users } from "@/actions/graphql/queries";
 import { signOut } from "@/actions/user";
 import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import { useContext, useEffect, useState } from "react";

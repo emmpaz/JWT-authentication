@@ -6,6 +6,7 @@ import { NextApiResponse } from "next";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { add_ID_to_DB, isBlacklisted } from "@/actions/redis";
+import { delete_session_by_refresh, refresh_token_in_session } from "@/actions/sessions";
 
 
 
@@ -29,20 +30,6 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
 
         const payload = decoded.payload as JwtPayload & TokenPayload;
 
-        const inDB = await isBlacklisted(payload.refreshTokenId ?? "");
-
-        if(inDB) {
-            const response = NextResponse.json({
-                message: 'Refresh is revoked. Sign in again to receive a new one'
-            }, {
-                status: 401
-            });
-
-            return response;
-        }
-
-        add_ID_to_DB(payload.refreshTokenId ?? "");
-
         const qResult = await query('SELECT * FROM users WHERE id = $1', [payload.id]);
 
         const data = qResult.rows[0] as {
@@ -51,22 +38,24 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
             email: string,
             encrypted_password: string,
             last_sign_in_at: string
-            // failed_attempts: number,
-            // lockout_until: Date
-        };;
+        };
 
         const access_token = await refreshAccessToken({
             id: data.id,
             email: data.email,
             name: data.name,
-            last_signed_in: data.last_sign_in_at
+            last_signed_in: data.last_sign_in_at,
+            session_id: payload.session_id
         });
 
         const refresh_token = await rotateRefreshToken({
             id: data.id,
             email: data.email,
-            name: data.name
-        })
+            name: data.name,
+            session_id: payload.session_id
+        });
+
+        await refresh_token_in_session(payload.session_id, refresh_token);
 
         return NextResponse.json({
             access_token : access_token,
@@ -76,7 +65,7 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
         });
 
     } catch (error) {
-
+        await delete_session_by_refresh(refresh);
         const response = NextResponse.json({
             message: 'Refresh token expired or invalid. Log in to regain access.'
         }, {

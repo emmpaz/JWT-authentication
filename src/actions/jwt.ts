@@ -20,6 +20,7 @@ export type TokenPayload = {
     name: string,
     refreshTokenId? : string,
     last_signed_in? : null | string,
+    session_id: string,
 }
 /**
  * NOTES
@@ -81,13 +82,15 @@ export function generateAccessAndRefreshToken(user: TokenPayload) {
         email: user.email,
         name: user.name,
         last_signed_in: user.last_signed_in,
+        session_id: user.session_id
     }
 
     const refreshPayload = {
         id: user.id,
         email: user.email,
         name: user.name,
-        refreshTokenId
+        refreshTokenId,
+        session_id: user.session_id
     }
 
     const accessSecret = process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string;
@@ -124,7 +127,8 @@ export async function refreshAccessToken(user: TokenPayload) {
         id: user.id,
         email: user.email,
         name: user.name,
-        last_signed_in: user.last_signed_in
+        last_signed_in: user.last_signed_in,
+        session_id: user.session_id
     }
 
     const accessSecret = process.env.NEXT_PUBLIC_JWT_SECRET_KEY as string;
@@ -149,7 +153,8 @@ export async function rotateRefreshToken(user: TokenPayload){
         id: user.id,
         email: user.email,
         name: user.name,
-        refreshTokenId
+        refreshTokenId,
+        session_id: user.session_id
     }
 
     const refreshSecret = process.env.NEXT_PUBLIC_REFRESH_SECRET_KEY as string;
